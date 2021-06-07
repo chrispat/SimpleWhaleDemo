@@ -16,15 +16,7 @@ jobs:
         name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v1
-      -     
-        name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-  
+
       -
         name: Login to ghcr
         if: github.event_name != 'pull_request'
@@ -32,7 +24,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.ghcr_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN}}
       -
         name: Build and push
         id: docker_build
@@ -42,9 +34,9 @@ jobs:
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: ghcr.io/usha-mandya/simplewhale:latest
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache
+          tags: ghcr.io/${{github.repository_owner}}/simplewhale:latest
+          cache-from: type=registry,ref=ghcr.io/${{github.repository_owner}}/simplewhale:latest
+          cache-to: type=inline
       -
         name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
